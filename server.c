@@ -39,7 +39,7 @@
 typedef struct header{
 	unsigned int seq_num;
 	unsigned int ack_num;
-	unsigned char isLast;
+	unsigned int isLast;
 }Header;
 
 //==================
@@ -154,13 +154,20 @@ int sendFile(FILE *fd){
 	bool receiveClientSayIsLast = false;
 	while (!receiveClientSayIsLast) {
 		//handle my_snd_pkt's data
+		bzero(my_snd_pkt.data, sizeof(my_snd_pkt.data));
 		if((readLength = fread(my_snd_pkt.data, 1, MAXDATASIZE, fd)) < 0){
 			printf("Error!\n");
 			assert(false);
 		}
 		printf("Successfully read length: %d\n", readLength);
 		sendbytes+=readLength;
-		if (sendbytes >= filesize) is_last = 1;
+		//for(int i=0;i<sizeof(my_snd_pkt.data);i++){
+		//	printf("%c", my_snd_pkt.data[i]);
+		//}
+		//printf("zzzzzzz\n");
+		if (sendbytes >= filesize){
+			is_last = 1 + readLength;
+		}
 		//handle my_snd_pkt's header
 		my_snd_pkt.header.seq_num = seq_num;
 		my_snd_pkt.header.isLast = is_last;
@@ -185,7 +192,7 @@ int sendFile(FILE *fd){
 				// > 0 means receive a not empty packet
 				if(((tmprcv = recvfrom(sockfd, &my_rcv_pkt, sizeof(my_rcv_pkt), 0, (struct sockaddr *)&info, (socklen_t *)&len)) > 0)){
 					if(my_rcv_pkt.header.ack_num == seq_num){
-						if(my_rcv_pkt.header.isLast == 1) receiveClientSayIsLast = true;
+						if(my_rcv_pkt.header.isLast >= 1) receiveClientSayIsLast = true;
 						plzResend = false;
 						seq_num++;
 						bzero(my_snd_pkt.data, sizeof(my_snd_pkt.data));

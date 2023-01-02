@@ -33,7 +33,7 @@
 typedef struct header{
 	unsigned int seq_num;
 	unsigned int ack_num;
-	unsigned char is_last;
+	unsigned int is_last;
 }Header;
 
 //==================
@@ -104,13 +104,15 @@ int recvFile(FILE *fd)
 	my_snd_pkt.header.is_last = 0;
 	bzero(my_snd_pkt.data, sizeof(my_snd_pkt.data));
 
+	int acc = 0;
+
 	bool receiveServerSayIsLast = false;
 	while(!receiveServerSayIsLast){
 		while (!receiveServerSayIsLast) {
 			//=======================
 			// Simulation packet loss
 			//=======================
-			if(isLoss(0.5)){
+			if(isLoss(0.8)){
 				printf("\tOops! Packet loss!\n");
 				break;
 			}
@@ -120,11 +122,21 @@ int recvFile(FILE *fd)
 			int readLength = 0;
 			if ((readLength = recvfrom(sockfd, &my_rcv_pkt, sizeof(my_rcv_pkt), 0, (struct sockaddr *)&info, (socklen_t *)&len)) > 0){
 				if(receive_packet == my_rcv_pkt.header.seq_num){
-					printf("Receive packet #%d ( %ld byte) and is_last = %c\n", my_rcv_pkt.header.seq_num, sizeof(my_rcv_pkt), my_rcv_pkt.header.is_last);
+					printf("Receive packet #%d ( %ld byte) and is_last = %d\n", my_rcv_pkt.header.seq_num, sizeof(my_rcv_pkt), my_rcv_pkt.header.is_last);
 					//==============================================
 					// Write buffer into file if is_last flag is set
 					//==============================================
-					fwrite(my_rcv_pkt.data,sizeof(char),sizeof(my_rcv_pkt.data),fd);
+					if(my_rcv_pkt.header.is_last>=1){
+						receiveServerSayIsLast = true;
+						fwrite(my_rcv_pkt.data,sizeof(char),my_rcv_pkt.header.is_last-1,fd);//this
+					}else
+						fwrite(my_rcv_pkt.data,sizeof(char),sizeof(my_rcv_pkt.data),fd);//this
+					//for(int i=0;i<sizeof(my_rcv_pkt.data);i++){
+					//	printf("%c",my_rcv_pkt.data[i]);
+					//}
+					//printf("zzzzzzz\n");
+					acc+=sizeof(my_rcv_pkt.data);
+					printf("cur acc: %d\n", acc);
 					printf("receive %ld bytes of data\n",sizeof(my_rcv_pkt.data));
 					bzero(my_rcv_pkt.data, sizeof(my_rcv_pkt.data));
 					//====================
@@ -133,7 +145,7 @@ int recvFile(FILE *fd)
 					my_snd_pkt.header.ack_num = receive_packet;
 					my_snd_pkt.header.is_last = my_rcv_pkt.header.is_last;
 					bzero(my_snd_pkt.data, sizeof(my_snd_pkt.data));
-					if(my_rcv_pkt.header.is_last==1) receiveServerSayIsLast = true;
+					
 					int tmpsend = 0;
 					if((tmpsend = sendto(sockfd, &my_snd_pkt, sizeof(my_snd_pkt), 0,(struct sockaddr *)&info, len)) == -1){
 						perror("error");
@@ -144,6 +156,8 @@ int recvFile(FILE *fd)
 			}
 		}
 	}
+
+	fclose(fd);
 	return 0;
 }
 
