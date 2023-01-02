@@ -161,10 +161,6 @@ int sendFile(FILE *fd){
 		}
 		printf("Successfully read length: %d\n", readLength);
 		sendbytes+=readLength;
-		//for(int i=0;i<sizeof(my_snd_pkt.data);i++){
-		//	printf("%c", my_snd_pkt.data[i]);
-		//}
-		//printf("zzzzzzz\n");
 		if (sendbytes >= filesize){
 			is_last = 1 + readLength;
 		}

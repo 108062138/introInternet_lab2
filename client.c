@@ -134,10 +134,6 @@ int recvFile(FILE *fd)
 						fwrite(my_rcv_pkt.data,sizeof(char),sizeof(my_rcv_pkt.data),fd);//this
 						acc+=sizeof(my_rcv_pkt.data);
 					}
-					//for(int i=0;i<sizeof(my_rcv_pkt.data);i++){
-					//	printf("%c",my_rcv_pkt.data[i]);
-					//}
-					//printf("zzzzzzz\n");
 					printf("cur acc: %d\n", acc);
 					printf("receive %ld bytes of data\n",sizeof(my_rcv_pkt.data));
 					bzero(my_rcv_pkt.data, sizeof(my_rcv_pkt.data));
