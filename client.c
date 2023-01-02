@@ -112,7 +112,7 @@ int recvFile(FILE *fd)
 			//=======================
 			// Simulation packet loss
 			//=======================
-			if(isLoss(0.8)){
+			if(isLoss(0.3)){
 				printf("\tOops! Packet loss!\n");
 				break;
 			}
@@ -129,13 +129,15 @@ int recvFile(FILE *fd)
 					if(my_rcv_pkt.header.is_last>=1){
 						receiveServerSayIsLast = true;
 						fwrite(my_rcv_pkt.data,sizeof(char),my_rcv_pkt.header.is_last-1,fd);//this
-					}else
+						acc+=sizeof(my_rcv_pkt.header.is_last-1);
+					}else{
 						fwrite(my_rcv_pkt.data,sizeof(char),sizeof(my_rcv_pkt.data),fd);//this
+						acc+=sizeof(my_rcv_pkt.data);
+					}
 					//for(int i=0;i<sizeof(my_rcv_pkt.data);i++){
 					//	printf("%c",my_rcv_pkt.data[i]);
 					//}
 					//printf("zzzzzzz\n");
-					acc+=sizeof(my_rcv_pkt.data);
 					printf("cur acc: %d\n", acc);
 					printf("receive %ld bytes of data\n",sizeof(my_rcv_pkt.data));
 					bzero(my_rcv_pkt.data, sizeof(my_rcv_pkt.data));
